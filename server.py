@@ -1,6 +1,5 @@
 from audiomanager import AudioManager
 from offcharger import OffCharger
-from powerplant import PowerPlant
 from aiohttp import web
 from motorcontroller import MotorController
 from servocontroller import ServoController
@@ -27,7 +26,6 @@ heartbeat = None
 signalingServer = None
 alsa = None
 tts = None
-powerPlant = None
 startupController = None
 audioManager = None
 audioManagerThread = None
@@ -181,11 +179,9 @@ if __name__ == "__main__":
 
     tts = TTSSpeaker(config, alsa, audioManager)
 
-    powerPlant = PowerPlant(config)
-
     startupController = StartupSequenceController(config, servoController, lightsController, tts)
 
-    heartbeat = Heartbeat(config, servoController, motorController, alsa, lightsController, powerPlant)
+    heartbeat = Heartbeat(config, servoController, motorController, alsa, lightsController)
 
     offCharger = OffCharger(config, tts, motorController)
 

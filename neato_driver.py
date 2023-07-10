@@ -5,7 +5,7 @@ ROS2 Bindings can be found in the neato_node package.
 
 #__author__ = "jnugen@gmail.com (James Nugen)"
 
-import rclpy
+#import rclpy
 
 import serial
 import time
@@ -15,20 +15,20 @@ BASE_WIDTH = 248    # millimeters
 MAX_SPEED = 300     # millimeters/second
 
 class Botvac():
-    def __init__(self, port = "/dev/ttyUSB0"):
-        self.logger = rclpy.logging.get_logger("neato_driver")
+    def __init__(self, port = "/dev/ttyACM0"):
+        #self.logger = rclpy.logging.get_logger("neato_driver")
 
         try:
             self.port = serial.Serial(port, 115200, timeout = 0)
         except:
-            self.logger.error("Could not access serial port: %s" % port)
+            #self.logger.error("Could not access serial port: %s" % port)
             raise
 
         #if not self.port.isOpen():
         #    self.logger.error("Failed To Open Serial Port %s" % port)
         #    return
 
-        self.logger.info("Opened Serial Port: %s" % port)
+        #self.logger.info("Opened Serial Port: %s" % port)
 
         # Storage for motor and sensor information
         self.state = {
@@ -58,7 +58,7 @@ class Botvac():
         self.port.flushInput()
 
         self.setTestMode("on")
-        self.setLDS("on")
+        self.setLDS("off")
 
         time.sleep(0.5)
         #self.setLed("ledgreen") #doesn't exist on Botvac Connected
@@ -68,7 +68,7 @@ class Botvac():
 
         self.flush()
 
-        self.logger.info("Init Done")
+        #self.logger.info("Init Done")
 
 
     def shutdown(self):
@@ -113,7 +113,7 @@ class Botvac():
             try:
                 vals, last = self.getResponse()
             except Exception as ex:
-                self.logger.error("Exception Reading Neato lidar: " + str(ex))
+                #self.logger.error("Exception Reading Neato lidar: " + str(ex))
                 last = True
                 vals = []
 
@@ -145,7 +145,8 @@ class Botvac():
                 angle += 1
 
         if len(ranges) != 360:
-            self.logger.info( "Missing laser scans: got %d points" %len(ranges))
+            test = 1
+            #self.logger.info( "Missing laser scans: got %d points" %len(ranges))
 
         return ranges, intensities
 
@@ -156,7 +157,7 @@ class Botvac():
         #could continue moving for up to a second. To work around this bug, the
         #first time a 0-velocity is sent in, a velocity of 1,1,1 is sent. Then,
         #the zero is sent. This effectively causes the robot to stop instantly.
-        if (int(l) == 0 and int(r) == 0 and int(s) == 0):
+        if (int(l) == 0 and int(r) == 0):
             if (not self.stop_state):
                 self.stop_state = True
                 l = 1
@@ -188,7 +189,8 @@ class Botvac():
                 values = vals.split(",")
                 self.state[values[0]] = float(values[1])
             except Exception as ex:
-                self.logger.error("Exception Reading Neato motors: " + str(ex))
+                test = 1
+                #self.logger.error("Exception Reading Neato motors: " + str(ex))
 
         return [self.state["LeftWheel_PositionInMM"], self.state["RightWheel_PositionInMM"]]
 
@@ -208,7 +210,8 @@ class Botvac():
                 values = vals.split(",")
                 self.state[values[0]] = int(values[1])
             except Exception as ex:
-                self.logger.error("Exception Reading Neato Analog sensors: " + str(ex))
+                test = 1
+                #self.logger.error("Exception Reading Neato Analog sensors: " + str(ex))
 
     def getDigitalSensors(self):
         """ Update values for digital sensors in the self.state dictionary. """
@@ -227,7 +230,8 @@ class Botvac():
                 self.state[values[0]] = int(values[1])
                 #print("Got Sensor: %s=%s" % (values[0], values[1]))
             except Exception as ex:
-                self.logger.error("Exception Reading Neato Digital sensors: " + str(ex))
+                test = 1
+                #self.logger.error("Exception Reading Neato Digital sensors: " + str(ex))
         return [self.state["LSIDEBIT"], self.state["RSIDEBIT"], self.state["LFRONTBIT"], self.state["RFRONTBIT"]]
 
     def getButtons(self):
@@ -251,7 +255,8 @@ class Botvac():
                 self.state[values[0]] = int(values[1])
 
             except Exception as ex:
-                self.logger.error("Exception Reading Neato charger info: " + str(ex))
+                test = 1
+                #self.logger.error("Exception Reading Neato charger info: " + str(ex))
 
     def setBacklight(self, value):
         if value > 0:
@@ -295,11 +300,11 @@ class Botvac():
         datalst = list()
         datain = bytearray()
 
-        while (self.reading and rclpy.ok()):
+        while (self.reading):
             try:
                 valarr = self.port.read(size=8196)
             except Exception as ex:
-                self.logger.error("Exception Reading Neato Serial: " + str(ex))
+                #self.logger.error("Exception Reading Neato Serial: " + str(ex))
                 valarr = b''
 
             if len(valarr) > 0:
@@ -319,11 +324,11 @@ class Botvac():
         self.reading = True
         line = bytearray()
 
-        while (self.reading and rclpy.ok()):
+        while (self.reading):
             try:
                val = self.port.read(1) # read from serial 1 char at a time so we can parse each character
             except Exception as ex:
-                self.logger.error("Exception Reading Neato Serial: " + str(ex))
+                #self.logger.error("Exception Reading Neato Serial: " + str(ex))
                 val = b''
 
             #print(val)
@@ -362,7 +367,7 @@ class Botvac():
     def getResponse(self, timeout = 1):
 
         # if we don't have any data in currentResponse, wait for more data to come in (or timeout) 
-        while (len(self.currentResponse) == 0) and rclpy.ok() and timeout > 0:
+        while (len(self.currentResponse) == 0) and timeout > 0:
 
             with self.readLock: # pop a new response data list out of self.responseData (should contain all data lines returned for the last sent command)
                if len(self.responseData) > 0:
@@ -386,7 +391,8 @@ class Botvac():
             if len(self.currentResponse) == 0:
                 last = True  # if this was the last line in the response set the last flag
         else:
-            self.logger.error("Time Out") # no data so must have timedout
+            test = 1
+            #self.logger.error("Time Out") # no data so must have timedout
 
         #self.logger.debug("Got Response: %s, Last: %d" % (line,last))
         return (line,last)

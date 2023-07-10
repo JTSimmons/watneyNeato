@@ -7,7 +7,7 @@ from events import Events
 
 
 class Heartbeat:
-    def __init__(self, config, servoController, motorController, alsa, lightsController, powerPlant):
+    def __init__(self, config, servoController, motorController, alsa, lightsController):
         driverConfig = config["DRIVER"]
         self.heartbeatInterval = float(driverConfig["MaxHeartbeatInvervalS"])
 
@@ -20,7 +20,6 @@ class Heartbeat:
         self.lastHeartbeat = time.time()
         self.task = None
         self.lightsController = lightsController
-        self.powerPlant = powerPlant
 
         self.resetHeartbeatData()
         loop = asyncio.get_event_loop()
@@ -92,7 +91,7 @@ class Heartbeat:
 
             cpuIdle = psutil.cpu_percent()
 
-            batteryInfo = self.powerPlant.getBatteryInfo()
+            batteryInfo = [50, False]
 
             return {
                 "SSID": ssid,

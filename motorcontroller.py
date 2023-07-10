@@ -1,5 +1,8 @@
 from events import Events
 from motor import Motor
+from neato_driver import Botvac
+
+
 import pigpio
 
 
@@ -51,6 +54,8 @@ class MotorController:
 
         self.audioManager = audioManager
         self.audioToken = 'fe7a1846-a0bb-4a44-aa3e-5b080089d37a'
+
+        self.robot = Botvac()
 
     def getTargetMotorDCs(self, targetBearing, slow):
         if targetBearing == "0":
@@ -122,13 +127,15 @@ class MotorController:
             raise ValueError("Invalid bearing: {}".format(bearing))
 
         leftDC, rightDC = self.getTargetMotorDCs(bearing, slow)
-        leftActive = self.leftMotor.setMotion(leftDC)
-        rightActive = self.rightMotor.setMotion(rightDC)
-        if leftActive or rightActive:
-            self.gpio.write(self.enablePin, pigpio.HIGH)
-            self.audioManager.lowerVolume(self.audioToken)
-            Events.getInstance().fireMotionOn()
-        else:
-            self.gpio.write(self.enablePin, pigpio.LOW)
-            self.audioManager.restoreVolume(self.audioToken)
-            Events.getInstance().fireMotionOff()
+        self.robot.setMotors(leftDC * 10, rightDC * 10, 150)
+
+        # leftActive = self.leftMotor.setMotion(leftDC)
+        # rightActive = self.rightMotor.setMotion(rightDC)
+        # if leftActive or rightActive:
+        #     self.gpio.write(self.enablePin, pigpio.HIGH)
+        #     self.audioManager.lowerVolume(self.audioToken)
+        #     Events.getInstance().fireMotionOn()
+        # else:
+        #     self.gpio.write(self.enablePin, pigpio.LOW)
+        #     self.audioManager.restoreVolume(self.audioToken)
+        #     Events.getInstance().fireMotionOff()
